@@ -58,7 +58,7 @@ public class AStarAlgoShortestPathImpl implements IAlgoShortestPath {
         }
         Map<String, Double> gScore = new HashMap<>();
         Map<String, Double> fScore = new HashMap<>();
-        Map<String, String> cameFrom = new HashMap<>();
+        Map<String, String> cameFrom = new HashMap<>(); // To reconstruct the path
 
         for(String node : allNodes) {
             gScore.put(node, Double.POSITIVE_INFINITY);
@@ -74,14 +74,16 @@ public class AStarAlgoShortestPathImpl implements IAlgoShortestPath {
         while(!openSet.isEmpty()) {
             NodeEntry current = openSet.poll();
 
+            // Check if we reached the end node
             if (current.name.equals(endNode)) {
                 return reconstructPath(cameFrom, endNode, gScore.get(endNode));
             }
 
             for (Edge edge : graph.getOrDefault(current.name, new ArrayList<>())) {
                 String neighbor = edge.getToNode();
-                double tentativeG = gScore.get(current.name) + edge.getWeight();
+                double tentativeG = gScore.get(current.name) + edge.getWeight(); // Cost from start to neighbor
 
+                // relaxation step
                 if (tentativeG < gScore.get(neighbor)) {
                     cameFrom.put(neighbor, current.name);
                     gScore.put(neighbor, tentativeG);
@@ -108,7 +110,7 @@ public class AStarAlgoShortestPathImpl implements IAlgoShortestPath {
         return new PathResult(path, totalDist);
     }
 
-
+    // Heuristic function to estimate the distance from a node to the goal
     private double heuristic(String from, String to){
         Point2D p1 = positions.get(from);
         Point2D p2 = positions.get(to);
