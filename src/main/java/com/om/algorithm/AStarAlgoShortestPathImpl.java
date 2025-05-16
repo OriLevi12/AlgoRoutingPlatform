@@ -49,6 +49,7 @@ public class AStarAlgoShortestPathImpl implements IAlgoShortestPath {
             throw new IllegalArgumentException("Start or end node does not exist in the graph: " + startNode + " → " + endNode);
         }
 
+        // Collect all nodes in the graph for initialization
         Set<String> allNodes = new HashSet<>();
         for (Map.Entry<String, List<Edge>> entry : graph.entrySet()) {
             allNodes.add(entry.getKey());
@@ -56,18 +57,24 @@ public class AStarAlgoShortestPathImpl implements IAlgoShortestPath {
                 allNodes.add(edge.getToNode());
             }
         }
+        // g(n): Cost from start to n
         Map<String, Double> gScore = new HashMap<>();
+        // f(n): Estimated total cost from start to goal through n
         Map<String, Double> fScore = new HashMap<>();
+        // For path reconstruction
         Map<String, String> cameFrom = new HashMap<>(); // To reconstruct the path
 
+        // Initialize scores to infinity for all nodes
         for(String node : allNodes) {
             gScore.put(node, Double.POSITIVE_INFINITY);
             fScore.put(node, Double.POSITIVE_INFINITY);
         }
 
+        // Initialize start node with g=0 and f=heuristic estimate
         gScore.put(startNode, 0.0);
         fScore.put(startNode, heuristic(startNode, endNode));
 
+        // Priority queue ordered by fScore (estimated total cost)
         PriorityQueue<NodeEntry> openSet = new PriorityQueue<>(Comparator.comparingDouble(n -> n.fScore));
         openSet.add(new NodeEntry(startNode, 0.0 , fScore.get(startNode)));
 
@@ -79,14 +86,16 @@ public class AStarAlgoShortestPathImpl implements IAlgoShortestPath {
                 return reconstructPath(cameFrom, endNode, gScore.get(endNode));
             }
 
+            // Explore neighbors
             for (Edge edge : graph.getOrDefault(current.name, new ArrayList<>())) {
                 String neighbor = edge.getToNode();
                 double tentativeG = gScore.get(current.name) + edge.getWeight(); // Cost from start to neighbor
 
-                // relaxation step
+                // If we found a better path to neighbor
                 if (tentativeG < gScore.get(neighbor)) {
                     cameFrom.put(neighbor, current.name);
                     gScore.put(neighbor, tentativeG);
+                    // Update fScore with new g + heuristic
                     fScore.put(neighbor, tentativeG + heuristic(neighbor, endNode));
 
                     openSet.add(new NodeEntry(neighbor, tentativeG, fScore.get(neighbor)));
